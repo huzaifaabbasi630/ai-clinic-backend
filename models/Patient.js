@@ -19,6 +19,20 @@ const patientSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add contact number'],
   },
+  email: {
+    type: String,
+    trim: true,
+  },
+  address: {
+    type: String,
+    required: [true, 'Please add address'],
+  },
+  bloodGroup: {
+    type: String,
+  },
+  emergencyContact: {
+    type: String,
+  },
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
