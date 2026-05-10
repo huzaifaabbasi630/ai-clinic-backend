@@ -79,3 +79,14 @@ exports.getMe = catchAsync(async (req, res, next) => {
 
   res.status(200).json(user);
 });
+
+// @desc    Get all users (for Admin)
+// @route   GET /api/auth/users
+// @access  Private/Admin
+exports.getUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find({});
+  res.status(200).json({
+    success: true,
+    data: users
+  });
+});
