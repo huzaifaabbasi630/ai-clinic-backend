@@ -48,3 +48,26 @@ exports.prescriptionExplain = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+// @desc    Analyze risk via AI
+// @route   POST /api/ai/risk-flag
+// @access  Private (Pro only via middleware)
+exports.riskFlag = catchAsync(async (req, res, next) => {
+  const { patientId, history } = req.body;
+
+  if (!patientId || !history) {
+    res.status(400);
+    throw new Error('Please provide patient ID and history to analyze risk');
+  }
+
+  const result = await aiService.flagRisk(patientId, history, req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      logId: result.log._id,
+      response: result.aiData,
+      isFallback: !result.successStatus
+    }
+  });
+});

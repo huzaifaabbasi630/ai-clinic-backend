@@ -94,3 +94,15 @@ exports.deletePatient = catchAsync(async (req, res, next) => {
     data: {}
   });
 });
+
+// @desc    Get patient medical history
+// @route   GET /api/patients/:id/history
+// @access  Private
+exports.getPatientHistory = catchAsync(async (req, res, next) => {
+  const history = await patientService.getMedicalHistory(req.params.id);
+
+  res.status(200).json({
+    success: true,
+    data: history
+  });
+});

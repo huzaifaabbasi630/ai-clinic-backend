@@ -4,7 +4,8 @@ const {
   getPatients,
   getPatient,
   updatePatient,
-  deletePatient
+  deletePatient,
+  getPatientHistory
 } = require('../controllers/patientController');
 
 const { protect } = require('../middlewares/authMiddleware');
@@ -23,5 +24,7 @@ router
   .get(getPatient)
   .put(updatePatient)
   .delete(deletePatient);
+
+router.get('/:id/history', getPatientHistory);
 
 module.exports = router;
