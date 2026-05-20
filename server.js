@@ -39,15 +39,21 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, curl, or postman during development)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                      origin.endsWith('.vercel.app') || 
+                      origin.startsWith('http://localhost:') ||
+                      process.env.NODE_ENV !== 'production';
+
+    if (isAllowed) {
       return callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'), false);
+      return callback(new Error('Not allowed by CORS: ' + origin), false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 app.use(express.json());
