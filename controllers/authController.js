@@ -2,6 +2,30 @@ const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const generateToken = require('../utils/generateToken');
 
+// Helper function to get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  const token = generateToken(user._id);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
+    ),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  };
+
+  res.status(statusCode)
+    .cookie('token', token, cookieOptions)
+    .json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      subscriptionPlan: user.subscriptionPlan,
+    });
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -25,14 +49,7 @@ exports.register = catchAsync(async (req, res, next) => {
   });
 
   if (user) {
-    res.status(201).json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      subscriptionPlan: user.subscriptionPlan,
-      token: generateToken(user._id),
-    });
+    sendTokenResponse(user, 201, res);
   } else {
     res.status(400);
     throw new Error('Invalid user data');
@@ -61,14 +78,20 @@ exports.login = catchAsync(async (req, res, next) => {
     throw new Error('Invalid credentials');
   }
 
-  res.json({
-    _id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    subscriptionPlan: user.subscriptionPlan,
-    token: generateToken(user._id),
+  sendTokenResponse(user, 200, res);
+});
+
+// @desc    Logout user / clear cookie
+// @route   POST /api/auth/logout
+// @access  Public
+exports.logout = catchAsync(async (req, res, next) => {
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
   });
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
 });
 
 // @desc    Get current logged in user

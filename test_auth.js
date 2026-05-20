@@ -32,7 +32,13 @@ async function testAuth() {
       const req = http.request(options, (res) => {
         let responseData = '';
         res.on('data', (chunk) => responseData += chunk);
-        res.on('end', () => resolve({ statusCode: res.statusCode, data: JSON.parse(responseData) }));
+        res.on('end', () => {
+          try {
+            resolve({ statusCode: res.statusCode, data: responseData ? JSON.parse(responseData) : {}, headers: res.headers });
+          } catch (e) {
+            resolve({ statusCode: res.statusCode, data: responseData, headers: res.headers });
+          }
+        });
       });
       req.on('error', reject);
       if (data) req.write(data);
@@ -68,25 +74,28 @@ async function testAuth() {
     console.log('Status:', logRes.statusCode);
     console.log('Response:', logRes.data);
     
-    if (logRes.data.token) {
-      console.log('\n3. Testing Get Me (Protected Route)...');
+    const cookies = logRes.headers['set-cookie'];
+    if (cookies && cookies.length > 0) {
+      console.log('\n3. Testing Get Me (Protected Route via Secure Cookie)...');
       const meOptions = {
         hostname: 'localhost',
         port: 5000,
         path: '/api/auth/me',
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${logRes.data.token}`
+          'Cookie': cookies[0].split(';')[0]
         }
       };
       const meRes = await makeRequest(meOptions);
       console.log('Status:', meRes.statusCode);
       console.log('Response:', meRes.data);
+    } else {
+      console.log('\n3. Error: No token cookie was set on login!');
     }
   } catch (err) {
     console.error('Request failed:', err.message);
   } finally {
-    server.kill('SIGINT');
+    server.kill();
     console.log('\nTests finished, server stopped.');
   }
 }
