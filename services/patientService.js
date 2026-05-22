@@ -59,7 +59,7 @@ exports.deletePatient = async (id) => {
 };
 
 exports.getMedicalHistory = async (patientId) => {
-  const appointments = await Appointment.find({ patientId }).sort({ date: -1 });
+  const appointments = await Appointment.find({ patientId }).populate('doctorId', 'name').sort({ date: -1 });
   const prescriptions = await Prescription.find({ patientId }).populate('doctorId', 'name').sort({ createdAt: -1 });
   const diagnosisLogs = await DiagnosisLog.find({ patientId }).sort({ createdAt: -1 });
 
